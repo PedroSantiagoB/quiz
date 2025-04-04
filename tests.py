@@ -1,6 +1,13 @@
 import pytest
 from model import Question
 
+@pytest.fixture
+def sample_question():
+    q = Question("Which of the following is a prime number?", max_selections=1)
+    q.add_choice("7", is_correct=True)
+    q.add_choice("4", is_correct=False)
+    q.add_choice("9", is_correct=False)
+    return q
 
 def test_create_question():
     question = Question(title='q1')
@@ -105,3 +112,14 @@ def test_max_selections_limit():
     c2 = question.add_choice('B', False)
     with pytest.raises(Exception):
         question.select_choices([c1.id, c2.id])
+
+def test_fixture_selection_correct(sample_question):
+    correct_ids = sample_question._correct_choice_ids()
+    selected = sample_question.select_choices(correct_ids)
+    assert set(selected) == set(correct_ids)
+
+def test_fixture_limit_selection(sample_question):
+    correct_ids = sample_question._correct_choice_ids()
+    extra = sample_question.add_choice("21", False)
+    with pytest.raises(Exception):
+        sample_question.select_choices([*correct_ids, extra.id])
